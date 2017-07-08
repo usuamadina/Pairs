@@ -1,3 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pairs</string>
+    <string name="app_name">Parejas</string>
+    <string name="sign_in_failed">Fallo al conectar. Revisa la conexión e inténtalo de nuevo.</string>
+    <string name="app_misconfigured">La aplicación no está correctamente configurada. Revisa que el nombre del paquete y la firma coinciden con el ID de cliente creado en Developer Console. Además, si la aplicación no ha sido publicada, revisa que la cuenta con la que estás tratando de conectar está dada de alta en la lista de testers. Para más información revisa los logs.</string>
+    <string name="license_failed">Fallo en la validación de la licencia.</string>
+    <string name="unknown_error">Error desconocido.</string>
 </resources>
