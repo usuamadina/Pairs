@@ -21,9 +21,11 @@ import android.widget.TextView;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.snapshot.Snapshot;
+import com.google.android.gms.games.snapshot.SnapshotMetadata;
 import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
 import com.google.android.gms.games.snapshot.Snapshots;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
@@ -222,7 +224,12 @@ public class Play extends Activity {
         switch (requestCode) {
             case RC_SAVED_GAMES:
                 if (intent != null) {
-                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
+                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_METADATA)) {
+                        SnapshotMetadata snapshotMetadata = (SnapshotMetadata) intent.getParcelableExtra(Snapshots.EXTRA_SNAPSHOT_METADATA);
+                        savedGameName = snapshotMetadata.getUniqueName();
+                        loadSnapshotSavedGame();
+                        return;
+                    } else if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
                         newSnapshotSavedGame();
                     }
                 } else {
@@ -328,6 +335,31 @@ public class Play extends Activity {
         snapshot.getSnapshotContents().writeBytes(data);
         SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder().setDescription(desc).build();
         return Games.Snapshots.commitAndClose(Game.mGoogleApiClient, snapshot, metadataChange);
+    }
+
+    void loadSnapshotSavedGame() {
+        AsyncTask<Void, Void, Integer> task = new AsyncTask<Void, Void, Integer>() {
+            @Override
+            protected Integer doInBackground(Void... params) {
+                Snapshots.OpenSnapshotResult result = Games.Snapshots.open(Game.mGoogleApiClient, savedGameName, true).await();
+                if (result.getStatus().isSuccess()) {
+                    Snapshot snapshot = result.getSnapshot();
+                    try {
+                        savedGameData = new byte[0];
+                        savedGameData = snapshot.getSnapshotContents().readFully();
+                    } catch (IOException e) {
+                    }
+                }
+                return result.getStatus().getStatusCode();
+            }
+
+            @Override
+            protected void onPostExecute(Integer status) {
+                decodedSavedGame();
+                mostrarTablero();
+            }
+        };
+        task.execute();
     }
 
 }
