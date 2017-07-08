@@ -11,6 +11,7 @@ import android.widget.Button;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.games.Games;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     private boolean mSignInClicked = false;
     private com.google.android.gms.common.SignInButton btnConnect;
     private Button btnDisconnect;
+    private Button btnSavedGames;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,23 +42,31 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         btnConnect.setOnClickListener(btnConnect_Click);
         btnDisconnect = (Button) findViewById(R.id.sign_out_button);
         btnDisconnect.setOnClickListener(btnDisconnect_Click);
-        Game.mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Games.API).addScope(Games.SCOPE_GAMES).build();
+        Game.mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Games.API)
+                .addScope(Games.SCOPE_GAMES)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_APPFOLDER)
+                .build();
         SharedPreferences prefs = getSharedPreferences("Parejas", MODE_PRIVATE);
         int conectado = prefs.getInt("conectado", 0);
         if (conectado != 0) {
             Game.mGoogleApiClient.connect();
         }
+        btnSavedGames = (Button) findViewById(R.id.btnSavedGames);
 
     }
 
     public void btnPlay_Click(View v) {
         Game.matchType = "LOCAL";
-        nuevoJuego(4, 4);
+        newGame(4, 4);
         Intent intent = new Intent(this, Play.class);
         startActivity(intent);
     }
 
-    private void nuevoJuego(int col, int fil) {
+    private void newGame(int col, int fil) {
         Game.turn = 1;
         Game.ROWS = fil;
         Game.COLUMNS = col;
@@ -145,5 +155,12 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
                 break;
         }
         super.onActivityResult(requestCode, responseCode, intent);
+    }
+
+    public void btnSavedGames_Click(View v) {
+        Game.matchType = "GUARDADA";
+        newGame(4, 4);
+        Intent intent = new Intent(this, Play.class);
+        startActivity(intent);
     }
 }

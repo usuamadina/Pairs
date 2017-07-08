@@ -2,6 +2,7 @@ package com.example.pairs;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,9 @@ import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import com.google.android.gms.games.Games;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -35,6 +39,7 @@ public class Play extends Activity {
     private static Object lock = new Object();
     private Button[][] buttons;
     private ButtonListener btnBox_Click;
+    private static final int RC_SAVED_GAMES = 9009;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +54,9 @@ public class Play extends Activity {
             case "LOCAL":
                 mostrarTablero();
                 break;
+            case "GUARDADA":
+                showSavedGames();
+                break;
         }
     }
 
@@ -62,32 +70,34 @@ public class Play extends Activity {
     }
 
     public void compruebaBoxs() {
-            if (Game.boxes[secondBox.x][secondBox.y] == Game.boxes[firstBox.x][firstBox.y]) {
-                //ACIERTO
-                Game.boxes[secondBox.x][secondBox.y] = 0;
-                Game.boxes[firstBox.x][firstBox.y] = 0;
-                buttons[firstBox.x][firstBox.y].setVisibility(View.INVISIBLE);
-                buttons[secondBox.x][secondBox.y].setVisibility(View.INVISIBLE);
-                if (Game.turn == 1) {
-                    Game.pointsJ1 += 2;
-                } else {
-                    Game.pointsJ2 += 2;
-                }
-                if ((Game.pointsJ1 + Game.pointsJ2) == (Game.ROWS * Game.COLUMNS)) { 
-                    //FIN JUEGO 
-                    ((TextView)findViewById(R.id.player)).setText("GANADOR player "+ (Game.turn)+""); } } else {
-                //FALLO
-                secondBox.button.setBackgroundDrawable(hiddenImage);
-                firstBox.button.setBackgroundDrawable(hiddenImage);
-                }
-                if (Game.turn == 1) {
-                    Game.turn = 2;
-                } else {
-                    Game.turn = 1;
-                }
-            firstBox = null;
-            secondBox = null;
+        if (Game.boxes[secondBox.x][secondBox.y] == Game.boxes[firstBox.x][firstBox.y]) {
+            //ACIERTO
+            Game.boxes[secondBox.x][secondBox.y] = 0;
+            Game.boxes[firstBox.x][firstBox.y] = 0;
+            buttons[firstBox.x][firstBox.y].setVisibility(View.INVISIBLE);
+            buttons[secondBox.x][secondBox.y].setVisibility(View.INVISIBLE);
+            if (Game.turn == 1) {
+                Game.pointsJ1 += 2;
+            } else {
+                Game.pointsJ2 += 2;
+            }
+            if ((Game.pointsJ1 + Game.pointsJ2) == (Game.ROWS * Game.COLUMNS)) {
+                //FIN JUEGO
+                ((TextView) findViewById(R.id.player)).setText("GANADOR player " + (Game.turn) + "");
+            }
+        } else {
+            //FALLO
+            secondBox.button.setBackgroundDrawable(hiddenImage);
+            firstBox.button.setBackgroundDrawable(hiddenImage);
         }
+        if (Game.turn == 1) {
+            Game.turn = 2;
+        } else {
+            Game.turn = 1;
+        }
+        firstBox = null;
+        secondBox = null;
+    }
 
     private void loadImages() {
         images = new ArrayList<Drawable>();
@@ -187,6 +197,12 @@ public class Play extends Activity {
         button.setOnClickListener(btnBox_Click);
         buttons[x][y] = button;
         return button;
+    }
+
+    private void showSavedGames() {
+        int maxNumberOfSavedGamesToShow = 5;
+        Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(Game.mGoogleApiClient, "Partidas guardadas", true, true, maxNumberOfSavedGamesToShow);
+        startActivityForResult(savedGamesIntent, RC_SAVED_GAMES);
     }
 }
 

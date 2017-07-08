@@ -22,4 +22,11 @@
         android:layout_height="wrap_content"
         android:onClick="btnPlay_Click"
         android:text="Jugar" />
+
+    <Button
+        android:id="@+id/btnSavedGames"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnSavedGames_Click"
+        android:text="Partidas guardadas" />
 </LinearLayout>
