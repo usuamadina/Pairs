@@ -56,7 +56,6 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
             Game.mGoogleApiClient.connect();
         }
         btnSavedGames = (Button) findViewById(R.id.btnSavedGames);
-
     }
 
     public void btnPlay_Click(View v) {

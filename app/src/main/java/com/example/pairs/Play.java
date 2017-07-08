@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 
 import android.os.Message;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -16,10 +18,17 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.snapshot.Snapshot;
+import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
+import com.google.android.gms.games.snapshot.Snapshots;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,6 +49,8 @@ public class Play extends Activity {
     private Button[][] buttons;
     private ButtonListener btnBox_Click;
     private static final int RC_SAVED_GAMES = 9009;
+    String savedGameName;
+    private byte[] savedGameData;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -201,8 +212,123 @@ public class Play extends Activity {
 
     private void showSavedGames() {
         int maxNumberOfSavedGamesToShow = 5;
-        Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(Game.mGoogleApiClient, "Partidas guardadas", true, true, maxNumberOfSavedGamesToShow);
+        Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(Game.mGoogleApiClient, "Games guardadas", true, true, maxNumberOfSavedGamesToShow);
         startActivityForResult(savedGamesIntent, RC_SAVED_GAMES);
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        switch (requestCode) {
+            case RC_SAVED_GAMES:
+                if (intent != null) {
+                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
+                        newSnapshotSavedGame();
+                    }
+                } else {
+                    finish();
+                }
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, intent);
+    }
+
+    void encodeSavedGame() {
+        savedGameData = new byte[Game.ROWS * Game.COLUMNS];
+        int k = 0;
+        for (int i = 0; i < Game.ROWS; i++) {
+            for (int j = 0; j < Game.COLUMNS; j++) {
+                savedGameData[k] = (byte) Game.boxes[i][j];
+                k++;
+            }
+        }
+    }
+
+    void decodedSavedGame() {
+
+        int i = 0;
+        int j = 0;
+        for (int k = 0; k < Game.ROWS * Game.COLUMNS; k++) {
+            Game.boxes[i][j] = (int) savedGameData[k];
+            if (j < Game.COLUMNS - 1) {
+                j++;
+            } else {
+                j = 0;
+                if (i < Game.ROWS - 1) {
+                    i++;
+                } else {
+                    i = 0;
+                }
+            }
+        }
+    }
+
+    void newSnapshotSavedGame() {
+        AsyncTask<Void, Void, Integer> task = new AsyncTask<Void, Void, Integer>() {
+            @Override
+            protected Integer doInBackground(Void... params) {
+                String unique = new BigInteger(281, new Random()).toString(13);
+                savedGameName = "Parejas-" + unique;
+                Snapshots.OpenSnapshotResult open = Games.Snapshots.open(Game.mGoogleApiClient, savedGameName, true).await();
+                if (!open.getStatus().isSuccess()) {
+                    return 0;
+                }
+                encodeSavedGame();
+                Snapshot snapshot = open.getSnapshot();
+                snapshot.getSnapshotContents().writeBytes(savedGameData);
+                Date d = new Date();
+                SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder()
+                        .fromMetadata(snapshot.getMetadata())
+                        .setDescription("Parejas " + DateFormat.format("yyyy.MM.dd", d.getTime()).toString())
+                        .build();
+                Snapshots.CommitSnapshotResult commit = Games.Snapshots.commitAndClose(Game.mGoogleApiClient, snapshot, metadataChange).await();
+                return -1;
+            }
+
+            @Override
+            protected void onPostExecute(Integer status) {
+                if (status == -1) {
+                    mostrarTablero();
+                }
+            }
+        };
+        task.execute();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (Game.matchType == "GUARDADA") {
+            saveSavedGame();
+        }
+        Play.this.finish();
+    }
+
+    public void saveSavedGame() {
+        encodeSavedGame();
+        AsyncTask<Void, Void, Integer> task = new AsyncTask<Void, Void, Integer>() {
+            @Override
+            protected Integer doInBackground(Void... params) {
+                Snapshots.OpenSnapshotResult open = Games.Snapshots.open(Game.mGoogleApiClient, savedGameName, false).await();
+                if (open.getStatus().isSuccess()) {
+                    Snapshot snapshot = open.getSnapshot();
+                    saveSnapshotSavedGame(snapshot, savedGameData, "Partida de Parejas");
+                    return 1;
+                }
+                return 0;
+            }
+
+            @Override
+            protected void onPostExecute(Integer status) {
+            }
+        };
+        task.execute();
+    }
+
+    private PendingResult<Snapshots.CommitSnapshotResult> saveSnapshotSavedGame(Snapshot snapshot, byte[] data, String desc) {
+        snapshot.getSnapshotContents().writeBytes(data);
+        SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder().setDescription(desc).build();
+        return Games.Snapshots.commitAndClose(Game.mGoogleApiClient, snapshot, metadataChange);
+    }
+
 }
 
