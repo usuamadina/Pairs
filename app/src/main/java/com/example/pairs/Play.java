@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.games.Games;
@@ -85,24 +86,42 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                 showSavedGames();
                 break;
             case "REAL":
+                Log.d("OnCreate", "Juego en tiempo real");
                 startRealTimeGame();
                 break;
         }
     }
 
     @Override
-    public void onRealTimeMessageReceived(RealTimeMessage realTimeMessage) {
+    public void onRealTimeMessageReceived(RealTimeMessage rtm) {
+        Log.d("ONREALTIMEMESSAGERECIVE","ENTRA");
+        byte[] buf = rtm.getMessageData();
+        String sender = rtm.getSenderParticipantId();
+        if (buf[0] == 'A') {
+            Log.d("REAL","ENVIANDO TABLERO DE INICIO");
+            int x = buf[1];
+            int y = buf[2];
+            int valor = buf[3];
+            Game.boxes[x][y] = valor;
+        }
+        if (buf[0] == 'C') {
+            Log.d("REAL","OTRO PLAYER PRESIONANDO CASILLA");
+            int x = buf[1];
+            int y = buf[2];
+            descubrirBox(x, y);
+        }
 
 
     }
 
     @Override
     public void onRoomConnecting(Room room) {
-
+        actualizeRoom(room);
     }
 
     @Override
     public void onRoomAutoMatching(Room room) {
+        actualizeRoom(room);
 
     }
 
@@ -118,12 +137,12 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
     @Override
     public void onPeerJoined(Room room, List<String> list) {
-
+        actualizeRoom(room);
     }
 
     @Override
     public void onPeerLeft(Room room, List<String> list) {
-
+        actualizeRoom(room);
     }
 
     @Override
@@ -143,6 +162,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
     @Override
     public void onPeersConnected(Room room, List<String> list) {
+        actualizeRoom(room);
 
     }
 
@@ -194,7 +214,6 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
             return;
         }
         actualizeRoom(room);
-
     }
 
     class actualizaBoxs extends Handler {
@@ -262,7 +281,40 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
     }
 
     class ButtonListener implements View.OnClickListener {
+
         @Override
+        public void onClick(View v) {
+            synchronized (lock) {
+                if (Game.matchType == "REAL") {
+                    if (Game.turn != localPlayer) {
+                        Toast.makeText(getApplicationContext(), "No es tu turno.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+                if (firstBox != null && secondBox != null) {
+                    return;
+                }
+                int id = v.getId();
+                int x = id / 100;
+                int y = id % 100;
+                descubrirBox(x, y);
+                if (Game.matchType == "REAL") {
+                    byte[] mensaje;
+                    mensaje = new byte[3];
+                    mensaje[0] = (byte) 'C';
+                    mensaje[1] = (byte) x;
+                    mensaje[2] = (byte) y;
+                    for (Participant p : mParticipants) {
+                        if (!p.getParticipantId().equals(mMyId)) {
+                            Games.RealTimeMultiplayer.sendReliableMessage(Game.mGoogleApiClient, null, mensaje, mRoomId, p.getParticipantId());
+                        }
+                    }
+                }
+            }
+        }
+
+
+       /* @Override
         public void onClick(View v) {
             synchronized (lock) {
                 if (firstBox != null && secondBox != null) {
@@ -273,7 +325,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                 int y = id % 100;
                 descubrirBox(x, y);
             }
-        }
+        }*/
     }
 
     private void descubrirBox(int x, int y) {
@@ -361,11 +413,13 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                 }
                 break;
             case RC_WAITING_ROOM:
-                if (requestCode == Activity.RESULT_OK) {
+                if (resultCode == Activity.RESULT_OK) {
+                    Log.d("OnResult", "Todo Ok");
                     localPlayerNumber();
                     sendOpponentBoard();
                     mostrarTablero();
                 } else {
+                    Log.d("OnResult", "RequestCode"+requestCode);
                     finish();
                 }
                 break;
@@ -499,6 +553,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
     }
 
     private void startRealTimeGame() {
+        Log.d("REAL", "HA ENTRADO");
         final int NUMERO_MINIMO_OPONENTES = 1, NUMERO_MAXIMO_OPONENTES = 1;
         Bundle criterioPartidaRapida = RoomConfig.createAutoMatchCriteria(NUMERO_MINIMO_OPONENTES, NUMERO_MAXIMO_OPONENTES, 0);
         RoomConfig.Builder roomConfiguradorConstructor = RoomConfig.builder(this);
@@ -520,7 +575,6 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
     public void sendOpponentBoard() {
         if (localPlayer == 1)
-
         {
             for (int fila = 0; fila < Game.ROWS; fila++) {
                 for (int columna = 0; columna < Game.COLUMNS; columna++) {
@@ -553,6 +607,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
     }
 
     void showWaitingRoom(Room room) {
+        Log.d("showWaitingRoom","Entra");
         final int MIN_PLAYERS = Integer.MAX_VALUE;
         Intent i = Games.RealTimeMultiplayer.getWaitingRoomIntent(Game.mGoogleApiClient, room, MIN_PLAYERS);
         startActivityForResult(i, RC_WAITING_ROOM);

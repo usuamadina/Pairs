@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
@@ -72,10 +73,10 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     }
 
     public void btnSavedGames_Click(View v) {
-            Game.matchType = "GUARDADA";
-            newGame(4, 4);
-            Intent intent = new Intent(this, Play.class);
-            startActivity(intent);
+        Game.matchType = "GUARDADA";
+        newGame(4, 4);
+        Intent intent = new Intent(this, Play.class);
+        startActivity(intent);
     }
 
     private View.OnClickListener btnConnect_Click = new View.OnClickListener() {
@@ -148,8 +149,6 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
 
         }
     }
-
-
 
 
     @Override
