@@ -4,11 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.Button;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
@@ -32,6 +29,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     private com.google.android.gms.common.SignInButton btnConnect;
     private Button btnDisconnect;
     private Button btnSavedGames;
+    private Button btnRealTimeGame;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +54,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
             Game.mGoogleApiClient.connect();
         }
         btnSavedGames = (Button) findViewById(R.id.btnSavedGames);
+        btnRealTimeGame = (Button) findViewById(R.id.btnRealTimeGame);
     }
 
     public void btnPlay_Click(View v) {
@@ -65,7 +64,40 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         startActivity(intent);
     }
 
-    private void newGame(int col, int fil) {
+    public void btnRealTimeGame_Click(View v) {
+        Game.matchType = "REAL";
+        newGame(4, 4);
+        Intent intent = new Intent(this, Play.class);
+        startActivity(intent);
+    }
+
+    public void btnSavedGames_Click(View v) {
+            Game.matchType = "GUARDADA";
+            newGame(4, 4);
+            Intent intent = new Intent(this, Play.class);
+            startActivity(intent);
+    }
+
+    private View.OnClickListener btnConnect_Click = new View.OnClickListener() {
+        public void onClick(View v) {
+            mSignInClicked = true;
+            mGoogleApiClient.connect();
+        }
+    };
+
+    private View.OnClickListener btnDisconnect_Click = new View.OnClickListener() {
+        public void onClick(View v) {
+            mSignInClicked = false;
+            Games.signOut(mGoogleApiClient);
+            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.sign_out_button).setVisibility(View.GONE);
+            SharedPreferences.Editor editor = getSharedPreferences("Parejas", MODE_PRIVATE).edit();
+            editor.putInt("conectado", 0);
+            editor.commit();
+        }
+    };
+
+    void newGame(int col, int fil) {
         Game.turn = 1;
         Game.ROWS = fil;
         Game.COLUMNS = col;
@@ -91,10 +123,9 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
+    public void onConnected(Bundle bundle) {
         findViewById(R.id.sign_in_button).setVisibility(View.GONE);
         findViewById(R.id.sign_out_button).setVisibility(View.VISIBLE);
-
     }
 
     @Override
@@ -104,7 +135,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    public void onConnectionFailed(ConnectionResult connectionResult) {
         if (mResolvingConnectionFailure) {
             return;
         }
@@ -118,23 +149,8 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         }
     }
 
-    View.OnClickListener btnConnect_Click = new View.OnClickListener() {
-        public void onClick(View v) {
-            mSignInClicked = true;
-            mGoogleApiClient.connect();
-        }
-    };
-    View.OnClickListener btnDisconnect_Click = new View.OnClickListener() {
-        public void onClick(View v) {
-            mSignInClicked = false;
-            Games.signOut(mGoogleApiClient);
-            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.sign_out_button).setVisibility(View.GONE);
-            SharedPreferences.Editor editor = getSharedPreferences("Parejas", MODE_PRIVATE).edit();
-            editor.putInt("conectado", 0);
-            editor.commit();
-        }
-    };
+
+
 
     @Override
     public void onActivityResult(int requestCode, int responseCode, Intent intent) {
@@ -156,10 +172,4 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         super.onActivityResult(requestCode, responseCode, intent);
     }
 
-    public void btnSavedGames_Click(View v) {
-        Game.matchType = "GUARDADA";
-        newGame(4, 4);
-        Intent intent = new Intent(this, Play.class);
-        startActivity(intent);
-    }
 }

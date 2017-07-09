@@ -24,6 +24,13 @@
         android:text="Jugar" />
 
     <Button
+        android:id="@+id/btnRealTimeGame"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnRealTimeGame_Click"
+        android:text="Partida en Tiempo Real" />
+
+    <Button
         android:id="@+id/btnSavedGames"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
