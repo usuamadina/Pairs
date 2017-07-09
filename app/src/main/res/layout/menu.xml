@@ -31,6 +31,13 @@
         android:text="Partida en Tiempo Real" />
 
     <Button
+        android:id="@+id/btnInvite"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnInvite_Click"
+        android:text="Invitar" />
+
+    <Button
         android:id="@+id/btnSavedGames"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

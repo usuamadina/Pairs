@@ -22,6 +22,9 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesStatusCodes;
+import com.google.android.gms.games.multiplayer.Invitation;
+import com.google.android.gms.games.multiplayer.Multiplayer;
+import com.google.android.gms.games.multiplayer.OnInvitationReceivedListener;
 import com.google.android.gms.games.multiplayer.Participant;
 import com.google.android.gms.games.multiplayer.realtime.RealTimeMessage;
 import com.google.android.gms.games.multiplayer.realtime.RealTimeMessageReceivedListener;
@@ -29,6 +32,7 @@ import com.google.android.gms.games.multiplayer.realtime.Room;
 import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
 import com.google.android.gms.games.multiplayer.realtime.RoomStatusUpdateListener;
 import com.google.android.gms.games.multiplayer.realtime.RoomUpdateListener;
+import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchConfig;
 import com.google.android.gms.games.snapshot.Snapshot;
 import com.google.android.gms.games.snapshot.SnapshotMetadata;
 import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
@@ -94,18 +98,18 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
     @Override
     public void onRealTimeMessageReceived(RealTimeMessage rtm) {
-        Log.d("ONREALTIMEMESSAGERECIVE","ENTRA");
+        Log.d("ONREALTIMEMESSAGERECIVE", "ENTRA");
         byte[] buf = rtm.getMessageData();
         String sender = rtm.getSenderParticipantId();
         if (buf[0] == 'A') {
-            Log.d("REAL","ENVIANDO TABLERO DE INICIO");
+            Log.d("REAL", "ENVIANDO TABLERO DE INICIO");
             int x = buf[1];
             int y = buf[2];
             int valor = buf[3];
             Game.boxes[x][y] = valor;
         }
         if (buf[0] == 'C') {
-            Log.d("REAL","OTRO PLAYER PRESIONANDO CASILLA");
+            Log.d("REAL", "OTRO PLAYER PRESIONANDO CASILLA");
             int x = buf[1];
             int y = buf[2];
             descubrirBox(x, y);
@@ -419,7 +423,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                     sendOpponentBoard();
                     mostrarTablero();
                 } else {
-                    Log.d("OnResult", "RequestCode"+requestCode);
+                    Log.d("OnResult", "RequestCode" + requestCode);
                     finish();
                 }
                 break;
@@ -574,8 +578,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
 
     public void sendOpponentBoard() {
-        if (localPlayer == 1)
-        {
+        if (localPlayer == 1) {
             for (int fila = 0; fila < Game.ROWS; fila++) {
                 for (int columna = 0; columna < Game.COLUMNS; columna++) {
                     byte[] mensaje;
@@ -607,12 +610,11 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
     }
 
     void showWaitingRoom(Room room) {
-        Log.d("showWaitingRoom","Entra");
+        Log.d("showWaitingRoom", "Entra");
         final int MIN_PLAYERS = Integer.MAX_VALUE;
         Intent i = Games.RealTimeMultiplayer.getWaitingRoomIntent(Game.mGoogleApiClient, room, MIN_PLAYERS);
         startActivityForResult(i, RC_WAITING_ROOM);
     }
-
 
 }
 
