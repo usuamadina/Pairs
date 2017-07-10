@@ -276,7 +276,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                     } else {
                         points = Game.pointsJ2;
                     }
-                    Games.Leaderboards.submitScore(Game.mGoogleApiClient, getString(R.string.realTime_score_id), points);
+                    Games.Leaderboards.submitScore(Game.mGoogleApiClient, getString(R.string.realTime_leaderboard_id), points);
                 }
 
 

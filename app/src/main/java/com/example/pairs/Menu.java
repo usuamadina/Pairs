@@ -42,6 +42,9 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     final static int RC_SELECT_PLAYERS = 10000;
     private Button btnInvite;
 
+    private Button btnLeaderBoard;
+    final static int REQUEST_LEADERBOARD = 100;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +71,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         btnRealTimeGame = (Button) findViewById(R.id.btnRealTimeGame);
         btnInvite = (Button) findViewById(R.id.btnInvite);
         btnTurnBasedMatch = (Button) findViewById(R.id.btnTurnBasedMatch);
+        btnLeaderBoard = (Button) findViewById(R.id.btnLeaderboard);
     }
 
     public void btnPlay_Click(View v) {
@@ -102,6 +106,10 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         final int NUMERO_MINIMO_OPONENTES = 1, NUMERO_MAXIMO_OPONENTES = 1;
         Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(Game.mGoogleApiClient, NUMERO_MINIMO_OPONENTES, NUMERO_MAXIMO_OPONENTES, true);
         startActivityForResult(intent, RC_SELECT_PLAYERS);
+    }
+
+    public void btnLeaderboard_Click(View v) {
+        startActivityForResult(Games.Leaderboards.getLeaderboardIntent(Game.mGoogleApiClient, getString(R.string.realTime_leaderboard_id)), REQUEST_LEADERBOARD);
     }
 
 

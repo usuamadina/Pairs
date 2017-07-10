@@ -45,6 +45,13 @@
         android:text="Partida por turnos" />
 
     <Button
+        android:id="@+id/btnLeaderboard"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnLeaderboard_Click"
+        android:text="Marcadores" />
+
+    <Button
         android:id="@+id/btnSavedGames"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
