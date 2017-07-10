@@ -36,6 +36,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     private Button btnDisconnect;
     private Button btnSavedGames;
     private Button btnRealTimeGame;
+    private Button btnTurnBasedMatch;
 
     String mIncomingInvitationId = null;
     final static int RC_SELECT_PLAYERS = 10000;
@@ -66,6 +67,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         btnSavedGames = (Button) findViewById(R.id.btnSavedGames);
         btnRealTimeGame = (Button) findViewById(R.id.btnRealTimeGame);
         btnInvite = (Button) findViewById(R.id.btnInvite);
+        btnTurnBasedMatch = (Button) findViewById(R.id.btnTurnBasedMatch);
     }
 
     public void btnPlay_Click(View v) {
@@ -84,6 +86,13 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
 
     public void btnSavedGames_Click(View v) {
         Game.matchType = "GUARDADA";
+        newGame(4, 4);
+        Intent intent = new Intent(this, Play.class);
+        startActivity(intent);
+    }
+
+    public void btnTurnBasedMatch_Click(View v) {
+        Game.matchType = "TURNO";
         newGame(4, 4);
         Intent intent = new Intent(this, Play.class);
         startActivity(intent);
@@ -201,7 +210,6 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
                 Games.TurnBasedMultiplayer.createMatch(Game.mGoogleApiClient, tbmc);
                 break;
         }
-        super.onActivityResult(requestCode, responseCode, intent);
     }
 
     @Override

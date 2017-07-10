@@ -38,6 +38,13 @@
         android:text="Invitar" />
 
     <Button
+        android:id="@+id/btnTurnBasedMatch"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnTurnBasedMatch_Click"
+        android:text="Partida por turnos" />
+
+    <Button
         android:id="@+id/btnSavedGames"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
