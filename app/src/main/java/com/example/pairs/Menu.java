@@ -45,6 +45,9 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     private Button btnLeaderBoard;
     final static int REQUEST_LEADERBOARD = 100;
 
+    private Button btnAchivements;
+    final static int REQUEST_ACHIEVEMENTS = 101;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +75,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         btnInvite = (Button) findViewById(R.id.btnInvite);
         btnTurnBasedMatch = (Button) findViewById(R.id.btnTurnBasedMatch);
         btnLeaderBoard = (Button) findViewById(R.id.btnLeaderboard);
+        btnAchivements = (Button) findViewById(R.id.btnAchivements);
     }
 
     public void btnPlay_Click(View v) {
@@ -100,6 +104,10 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         newGame(4, 4);
         Intent intent = new Intent(this, Play.class);
         startActivity(intent);
+    }
+
+    public void btnAchivements_Click(View v) {
+        startActivityForResult(Games.Achievements.getAchievementsIntent(Game.mGoogleApiClient), REQUEST_ACHIEVEMENTS);
     }
 
     public void btnInvite_Click(View v) {

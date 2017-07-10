@@ -52,6 +52,13 @@
         android:text="Marcadores" />
 
     <Button
+        android:id="@+id/btnAchivements"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnAchivements_Click"
+        android:text="Logros" />
+
+    <Button
         android:id="@+id/btnSavedGames"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
