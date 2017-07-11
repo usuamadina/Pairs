@@ -16,6 +16,7 @@ import com.google.android.gms.games.multiplayer.Multiplayer;
 import com.google.android.gms.games.multiplayer.OnInvitationReceivedListener;
 import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchConfig;
+import com.google.android.gms.games.quest.Quests;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -37,6 +38,8 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     private Button btnSavedGames;
     private Button btnRealTimeGame;
     private Button btnTurnBasedMatch;
+    private Button btnMissions;
+    final static int REQUEST_QUESTS = 102;
 
     String mIncomingInvitationId = null;
     final static int RC_SELECT_PLAYERS = 10000;
@@ -76,6 +79,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         btnTurnBasedMatch = (Button) findViewById(R.id.btnTurnBasedMatch);
         btnLeaderBoard = (Button) findViewById(R.id.btnLeaderboard);
         btnAchivements = (Button) findViewById(R.id.btnAchivements);
+        btnMissions = (Button) findViewById(R.id.btnMisions);
     }
 
     public void btnPlay_Click(View v) {
@@ -83,12 +87,14 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         newGame(4, 4);
         Intent intent = new Intent(this, Play.class);
         startActivity(intent);
+        Games.Events.increment(Game.mGoogleApiClient, getString(R.string.offline_event), 1);
     }
 
     public void btnRealTimeGame_Click(View v) {
         Game.matchType = "REAL";
         newGame(4, 4);
         Games.Achievements.increment(Game.mGoogleApiClient, getString(R.string.realtime_achivement), 1);
+        Games.Events.increment(Game.mGoogleApiClient, getString(R.string.realTime_event), 1);
         Intent intent = new Intent(this, Play.class);
         startActivity(intent);
     }
@@ -103,6 +109,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     public void btnTurnBasedMatch_Click(View v) {
         Game.matchType = "TURNO";
         newGame(4, 4);
+        Games.Events.increment(Game.mGoogleApiClient, getString(R.string.turnBased_event), 1);
         Intent intent = new Intent(this, Play.class);
         startActivity(intent);
     }
@@ -120,6 +127,10 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
 
     public void btnAchivements_Click(View v) {
         startActivityForResult(Games.Achievements.getAchievementsIntent(Game.mGoogleApiClient), REQUEST_ACHIEVEMENTS);
+    }
+
+    public void btnMisions_Click(View v) {
+        startActivityForResult(Games.Quests.getQuestsIntent(Game.mGoogleApiClient, Quests.SELECT_ALL_QUESTS), REQUEST_QUESTS);
     }
 
 

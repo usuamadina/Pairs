@@ -59,9 +59,17 @@
         android:text="Logros" />
 
     <Button
+        android:id="@+id/btnMisions"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnMisions_Click"
+        android:text="Misiones" />
+
+    <Button
         android:id="@+id/btnSavedGames"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:onClick="btnSavedGames_Click"
         android:text="Partidas guardadas" />
+
 </LinearLayout>
