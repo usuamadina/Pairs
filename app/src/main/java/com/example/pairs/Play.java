@@ -65,7 +65,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
     private Box secondBox;
     private ButtonListener buttonListener;
     private TableLayout table;
-    private actualizaBoxs handler;
+    private updateBoxes handler;
     private Context context;
     private static Object lock = new Object();
     private Button[][] buttons;
@@ -88,7 +88,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        handler = new actualizaBoxs();
+        handler = new updateBoxes();
         loadImages();
         setContentView(R.layout.play);
         hiddenImage = getResources().getDrawable(R.drawable.icon);
@@ -97,7 +97,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
         btnBox_Click = new ButtonListener();
         switch (Game.matchType) {
             case "LOCAL":
-                mostrarTablero();
+                showBoard();
                 break;
             case "GUARDADA":
                 showSavedGames();
@@ -114,21 +114,18 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
     @Override
     public void onRealTimeMessageReceived(RealTimeMessage rtm) {
-        Log.d("ONREALTIMEMESSAGERECIVE", "ENTRA");
         byte[] buf = rtm.getMessageData();
         String sender = rtm.getSenderParticipantId();
         if (buf[0] == 'A') {
-            Log.d("REAL", "ENVIANDO TABLERO DE INICIO");
             int x = buf[1];
             int y = buf[2];
             int valor = buf[3];
             Game.boxes[x][y] = valor;
         }
         if (buf[0] == 'C') {
-            Log.d("REAL", "OTRO PLAYER PRESIONANDO CASILLA");
             int x = buf[1];
             int y = buf[2];
-            descubrirBox(x, y);
+            showBox(x, y);
         }
 
 
@@ -246,7 +243,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
 
     }
 
-    class actualizaBoxs extends Handler {
+    class updateBoxes extends Handler {
         @Override
         public void handleMessage(Message msg) {
             synchronized (lock) {
@@ -270,15 +267,14 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
             if ((Game.pointsJ1 + Game.pointsJ2) == (Game.ROWS * Game.COLUMNS)) {
                 //FIN JUEGO
                 if (Game.matchType == "REAL") {
-                    int points;
+                    int puntos;
                     if (localPlayer == 1) {
-                        points = Game.pointsJ1;
+                        puntos = Game.pointsJ1;
                     } else {
-                        points = Game.pointsJ2;
+                        puntos = Game.pointsJ2;
                     }
-                    Games.Leaderboards.submitScore(Game.mGoogleApiClient, getString(R.string.realTime_leaderboard_id), points);
+                    Games.Leaderboards.submitScore(Game.mGoogleApiClient, getString(R.string.realTime_leaderboard_id), puntos);
                 }
-
 
                 ((TextView) findViewById(R.id.player)).setText("GANADOR JUGADOR " + (Game.turn) + "");
                 if (Game.matchType == "TURNO") {
@@ -287,7 +283,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                     mTurnData.playerTurn = Game.turn;
                     mTurnData.boxes = Game.boxes;
                     Games.TurnBasedMultiplayer.finishMatch(Game.mGoogleApiClient, mMatch.getMatchId());
-                    Toast.makeText(getApplicationContext(), "Fin de la Game.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Fin de la partida.", Toast.LENGTH_LONG).show();
                     mTurnData = null;
                 }
             }
@@ -315,9 +311,80 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                 mTurnData = null;
             }
         }
+
         firstBox = null;
         secondBox = null;
+
+
+
+
+
+       /* Log.d("checkboxes", "entra");
+        if (Game.boxes[secondBox.x][secondBox.y] == Game.boxes[firstBox.x][firstBox.y]) {
+            //ACIERTO
+            Game.boxes[secondBox.x][secondBox.y] = 0;
+            Game.boxes[firstBox.x][firstBox.y] = 0;
+            buttons[firstBox.x][firstBox.y].setVisibility(View.INVISIBLE);
+            buttons[secondBox.x][secondBox.y].setVisibility(View.INVISIBLE);
+            if (Game.turn == 1) {
+                Game.pointsJ1 += 2;
+            } else {
+                Game.pointsJ2 += 2;
+            }
+            if ((Game.pointsJ1 + Game.pointsJ2) == (Game.ROWS * Game.COLUMNS)) {
+                //FIN JUEGO
+                if (Game.matchType == "REAL") {
+                    int points;
+                    if (localPlayer == 1) {
+                        points = Game.pointsJ1;
+                    } else {
+                        points = Game.pointsJ2;
+                    }
+                    Games.Leaderboards.submitScore(Game.mGoogleApiClient, getString(R.string.realTime_leaderboard_id), points);
+                }
+                ((TextView) findViewById(R.id.player)).setText("GANADOR JUGADOR " + (Game.turn) + "");
+
+                if (Game.matchType == "TURNO") {
+                    Log.d("checkboxes", "acierto turno");
+                    mTurnData.pointsP1 = Game.pointsJ1;
+                    mTurnData.pointsP2 = Game.pointsJ2;
+                    mTurnData.playerTurn = Game.turn;
+                    mTurnData.boxes = Game.boxes;
+                    Games.TurnBasedMultiplayer.finishMatch(Game.mGoogleApiClient, mMatch.getMatchId());
+                    Toast.makeText(getApplicationContext(), "Fin de la partida.", Toast.LENGTH_LONG).show();
+                    mTurnData = null;
+
+                }
+            } else {
+                //FALLO
+                secondBox.button.setBackgroundDrawable(hiddenImage);
+                firstBox.button.setBackgroundDrawable(hiddenImage);
+                if (Game.turn == 1) {
+                    Game.turn = 2;
+                } else {
+                    Game.turn = 1;
+                }
+                if (Game.matchType == "TURNO") {
+                    Log.d("checkboxes", "acierto turno");
+                    mTurnData.pointsP1 = Game.pointsJ1;
+                    mTurnData.pointsP2 = Game.pointsJ2;
+                    mTurnData.playerTurn = Game.turn;
+                    mTurnData.boxes = Game.boxes;
+                    String nextParticipantId = getNextPlayerId();
+                    Games.TurnBasedMultiplayer.takeTurn(Game.mGoogleApiClient, mMatch.getMatchId(), mTurnData.persist(), nextParticipantId).setResultCallback(new ResultCallback<TurnBasedMultiplayer.UpdateMatchResult>() {
+                        @Override
+                        public void onResult(TurnBasedMultiplayer.UpdateMatchResult result) {
+                        }
+                    });
+                    Toast.makeText(getApplicationContext(), "Fin de tu turno.", Toast.LENGTH_LONG).show();
+                    mTurnData = null;
+                }
+            }
+            firstBox = null;
+            secondBox = null;
+        }*/
     }
+
 
     private void loadImages() {
         images = new ArrayList<Drawable>();
@@ -361,7 +428,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                 int id = v.getId();
                 int x = id / 100;
                 int y = id % 100;
-                descubrirBox(x, y);
+                showBox(x, y);
                 if (Game.matchType == "REAL") {
                     byte[] mensaje;
                     mensaje = new byte[3];
@@ -377,22 +444,9 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
             }
         }
 
-
-       /* @Override
-        public void onClick(View v) {
-            synchronized (lock) {
-                if (firstBox != null && secondBox != null) {
-                    return;
-                }
-                int id = v.getId();
-                int x = id / 100;
-                int y = id % 100;
-                descubrirBox(x, y);
-            }
-        }*/
     }
 
-    private void descubrirBox(int x, int y) {
+    private void showBox(int x, int y) {
         Button button = buttons[x][y];
         button.setBackgroundDrawable(images.get(Game.boxes[x][y]));
         if (firstBox == null) {
@@ -422,7 +476,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
         }
     }
 
-    private void mostrarTablero() {
+    private void showBoard() {
         buttons = new Button[Game.COLUMNS][Game.ROWS];
         for (int y = 0; y < Game.ROWS; y++) {
             table.addView(createRow(y));
@@ -481,7 +535,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                     Log.d("OnResult", "Todo Ok");
                     localPlayerNumber();
                     sendOpponentBoard();
-                    mostrarTablero();
+                    showBoard();
                 } else {
                     Log.d("OnResult", "RequestCode" + requestCode);
                     finish();
@@ -557,7 +611,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
             @Override
             protected void onPostExecute(Integer status) {
                 if (status == -1) {
-                    mostrarTablero();
+                    showBoard();
                 }
             }
         };
@@ -619,7 +673,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
             @Override
             protected void onPostExecute(Integer status) {
                 decodedSavedGame();
-                mostrarTablero();
+                showBoard();
             }
         };
         task.execute();
@@ -717,7 +771,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
                 if (match.getData() == null) {
                     initializeTurnBasedMatch(mMatch);
                 }
-                initializeTurnBasedMatch(mMatch);
+                showTurnBasedMatch(mMatch);
                 return;
             case TurnBasedMatch.MATCH_TURN_STATUS_THEIR_TURN:
                 showWarning("Turno...", "No es tu turno.");
@@ -788,7 +842,7 @@ public class Play extends Activity implements RoomStatusUpdateListener, RoomUpda
         turnTurnBasedMatch = mTurnData.playerTurn;
         Game.boxes = new int[mTurnData.columns][mTurnData.rows];
         Game.boxes = mTurnData.boxes;
-        mostrarTablero();
+        showBoard();
     }
 
     public String getNextPlayerId() {

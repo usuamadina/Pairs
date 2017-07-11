@@ -88,6 +88,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     public void btnRealTimeGame_Click(View v) {
         Game.matchType = "REAL";
         newGame(4, 4);
+        Games.Achievements.increment(Game.mGoogleApiClient, getString(R.string.realtime_achivement), 1);
         Intent intent = new Intent(this, Play.class);
         startActivity(intent);
     }
@@ -106,18 +107,19 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         startActivity(intent);
     }
 
-    public void btnAchivements_Click(View v) {
-        startActivityForResult(Games.Achievements.getAchievementsIntent(Game.mGoogleApiClient), REQUEST_ACHIEVEMENTS);
-    }
-
     public void btnInvite_Click(View v) {
         final int NUMERO_MINIMO_OPONENTES = 1, NUMERO_MAXIMO_OPONENTES = 1;
         Intent intent = Games.TurnBasedMultiplayer.getSelectOpponentsIntent(Game.mGoogleApiClient, NUMERO_MINIMO_OPONENTES, NUMERO_MAXIMO_OPONENTES, true);
         startActivityForResult(intent, RC_SELECT_PLAYERS);
+        Games.Achievements.unlock(Game.mGoogleApiClient, getString(R.string.invite_achivement));
     }
 
     public void btnLeaderboard_Click(View v) {
         startActivityForResult(Games.Leaderboards.getLeaderboardIntent(Game.mGoogleApiClient, getString(R.string.realTime_leaderboard_id)), REQUEST_LEADERBOARD);
+    }
+
+    public void btnAchivements_Click(View v) {
+        startActivityForResult(Games.Achievements.getAchievementsIntent(Game.mGoogleApiClient), REQUEST_ACHIEVEMENTS);
     }
 
 
