@@ -3,9 +3,12 @@ package com.example.pairs;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -17,6 +20,8 @@ import com.google.android.gms.games.multiplayer.OnInvitationReceivedListener;
 import com.google.android.gms.games.multiplayer.realtime.RoomConfig;
 import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchConfig;
 import com.google.android.gms.games.quest.Quests;
+import com.google.android.gms.games.request.GameRequest;
+import com.google.android.gms.games.request.OnRequestReceivedListener;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -40,6 +45,10 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     private Button btnTurnBasedMatch;
     private Button btnMissions;
     final static int REQUEST_QUESTS = 102;
+
+    private Button btnGifts;
+    final static int SEND_GIFT_QUESTS = 103;
+    private static final int DEFAULT_LIFETIME = 7;
 
     String mIncomingInvitationId = null;
     final static int RC_SELECT_PLAYERS = 10000;
@@ -80,6 +89,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         btnLeaderBoard = (Button) findViewById(R.id.btnLeaderboard);
         btnAchivements = (Button) findViewById(R.id.btnAchivements);
         btnMissions = (Button) findViewById(R.id.btnMisions);
+        btnGifts = (Button) findViewById(R.id.btnGifts);
     }
 
     public void btnPlay_Click(View v) {
@@ -133,6 +143,12 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
         startActivityForResult(Games.Quests.getQuestsIntent(Game.mGoogleApiClient, Quests.SELECT_ALL_QUESTS), REQUEST_QUESTS);
     }
 
+    public void btnGifts_Click(View v) {
+        Bitmap mGiftIcon;
+        mGiftIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_send_gift);
+        startActivityForResult(Games.Requests.getSendIntent(Game.mGoogleApiClient, GameRequest.TYPE_GIFT, "".getBytes(), DEFAULT_LIFETIME, mGiftIcon, "Esto es un regalo"), REQUEST_QUESTS);
+    }
+
 
     private View.OnClickListener btnConnect_Click = new View.OnClickListener() {
         public void onClick(View v) {
@@ -182,6 +198,7 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
     public void onConnected(Bundle bundle) {
         findViewById(R.id.sign_in_button).setVisibility(View.GONE);
         findViewById(R.id.sign_out_button).setVisibility(View.VISIBLE);
+        Games.Requests.registerRequestListener(mGoogleApiClient, mRequestListener);
     }
 
     @Override
@@ -201,7 +218,6 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
             if (!BaseGameUtils.resolveConnectionFailure(this, mGoogleApiClient, connectionResult, RC_SIGN_IN, "Hubo un error al conectar, por favor, inténtalo más tarde.")) {
                 mResolvingConnectionFailure = false;
             }
-
         }
     }
 
@@ -252,4 +268,26 @@ public class Menu extends Activity implements GoogleApiClient.ConnectionCallback
             mIncomingInvitationId = null;
         }
     }
+
+    private OnRequestReceivedListener mRequestListener = new OnRequestReceivedListener() {
+        @Override
+        public void onRequestReceived(GameRequest request) {
+            String requestStringResource;
+            switch (request.getType()) {
+                case GameRequest.TYPE_GIFT:
+                    requestStringResource = "Has recibido un regalo...";
+                    break;
+                case GameRequest.TYPE_WISH:
+                    requestStringResource = "Has recibido un deseo...";
+                    break;
+                default:
+                    return;
+            }
+            Toast.makeText(Menu.this, requestStringResource, Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onRequestRemoved(String requestId) {
+        }
+    };
 }

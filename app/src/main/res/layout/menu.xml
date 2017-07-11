@@ -66,10 +66,16 @@
         android:text="Misiones" />
 
     <Button
+        android:id="@+id/btnGifts"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnGifts_Click"
+        android:text="Regalos" />
+
+    <Button
         android:id="@+id/btnSavedGames"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:onClick="btnSavedGames_Click"
         android:text="Partidas guardadas" />
-
 </LinearLayout>
